@@ -38,6 +38,9 @@ namespace WebAPI.Config
 
                 //注册接口和实现层
                 builder.RegisterModule(new AutofacModuleRegister());
+
+                //Automapper映射
+                app.Services.AddAutoMapper(typeof(AutoMapperConfigs));
             });
         }
     }
