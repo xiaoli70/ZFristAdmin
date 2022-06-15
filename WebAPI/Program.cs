@@ -17,8 +17,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+#region 鉴权授权
+app.UseAuthentication();
 app.UseAuthorization();
+#endregion
+
+//使用跨域策略
+//app.UseCors("CorsPolicy");
 
 app.MapControllers();
 
