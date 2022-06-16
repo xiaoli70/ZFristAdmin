@@ -3,6 +3,7 @@ using Autofac.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Model.Other;
+using Newtonsoft.Json;
 using SqlSugar;
 using System.Text;
 
@@ -13,10 +14,10 @@ namespace WebAPI.Config
     /// </summary>
     public static class HostBuilderExtend
     {
-        public static void Register(this WebApplicationBuilder app)
+        public static void Register(this WebApplicationBuilder builder)
         {
-            app.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
-            app.Host.ConfigureContainer<ContainerBuilder>(builder =>
+            builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
+            builder.Host.ConfigureContainer<ContainerBuilder>(builder =>
             {
                 #region 注册sqlsugar
                 builder.Register<ISqlSugarClient>(context =>
@@ -44,14 +45,14 @@ namespace WebAPI.Config
                 builder.RegisterModule(new AutofacModuleRegister());
             });
             //Automapper映射
-            app.Services.AddAutoMapper(typeof(AutoMapperConfigs));
+            builder.Services.AddAutoMapper(typeof(AutoMapperConfigs));
             //第一步，注册JWT
-            app.Services.Configure<JWTTokenOptions>(app.Configuration.GetSection("JWTTokenOptions"));
+            builder.Services.Configure<JWTTokenOptions>(builder.Configuration.GetSection("JWTTokenOptions"));
             #region JWT校验
             //第二步，增加鉴权逻辑
             JWTTokenOptions tokenOptions = new JWTTokenOptions();
-            app.Configuration.Bind("JWTTokenOptions", tokenOptions);
-            app.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)//Scheme
+            builder.Configuration.Bind("JWTTokenOptions", tokenOptions);
+            builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)//Scheme
              .AddJwtBearer(options =>  //这里是配置的鉴权的逻辑
              {
                  options.TokenValidationParameters = new TokenValidationParameters
@@ -69,11 +70,16 @@ namespace WebAPI.Config
             #endregion
 
             //添加跨域策略
-            app.Services.AddCors(options =>
+            builder.Services.AddCors(options =>
             {
                 options.AddPolicy("CorsPolicy", opt => opt.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod().WithExposedHeaders("X-Pagination"));
             });
-
+            //设置Json返回的日期格式
+            builder.Services.AddControllers().AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
+                options.SerializerSettings.DateFormatString = "yyyy-MM-dd HH:mm:ss";
+            });
         }
     }
 }
