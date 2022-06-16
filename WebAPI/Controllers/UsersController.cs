@@ -58,5 +58,12 @@ namespace WebAPI.Controllers
         {
             return ResultHelper.Success(_users.SettingRole(pid, rids));
         }
+        [HttpGet]
+        public ApiResult EditNickNameOrPassword(string nickName, string? password)
+        {
+            //获取当前登录人信息
+            long userId = Convert.ToInt32(HttpContext.User.Claims.ToList()[0].Value);
+            return ResultHelper.Success(_users.EditNickNameOrPassword(userId, nickName, password));
+        }
     }
 }

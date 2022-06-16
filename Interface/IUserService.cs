@@ -63,5 +63,13 @@ namespace Interface
         /// <param name="rids"></param>
         /// <returns></returns>
         bool SettingRole(string pid, string rids);
+        /// <summary>
+        /// 个人中心修改用户昵称或者密码
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="nickName"></param>
+        /// <param name="password"></param>
+        /// <returns></returns>
+        bool EditNickNameOrPassword(long userId, string nickName, string password);
     }
 }

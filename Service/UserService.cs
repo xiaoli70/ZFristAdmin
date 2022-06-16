@@ -125,5 +125,21 @@ namespace Service
             _db.Ado.ExecuteCommand($"DELETE UserRoleRelation WHERE UserId = {pid}");
             return _db.Insertable(list).ExecuteCommand() > 0;
         }
+        public bool EditNickNameOrPassword(long userId, string nickName, string password)
+        {
+            var info = _db.Queryable<Users>().Where(p => p.Id == userId).First();
+            if (info != null)
+            {
+                if (!string.IsNullOrEmpty(nickName))
+                {
+                    info.NickName = nickName;
+                }
+                if (!string.IsNullOrEmpty(password))
+                {
+                    info.Password = password;
+                }
+            }
+            return _db.Updateable(info).ExecuteCommand() > 0;
+        }
     }
 }
