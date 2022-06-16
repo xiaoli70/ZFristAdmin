@@ -12,7 +12,6 @@ namespace Model.Dto.User
         public string Name { get; set; }
         public string NickName { get; set; }
         public string Password { get; set; }
-        public int UserType { get; set; }
         public bool IsEnable { get; set; }
         public string Description { get; set; }
     }
