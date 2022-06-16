@@ -54,5 +54,11 @@ namespace WebAPI.Controllers
         {
             return ResultHelper.Success(_Menu.SettingMenu(rid, mids));
         }
+        [HttpGet]
+        public ApiResult GetUserMenus()
+        {
+            long userId = Convert.ToInt32(HttpContext.User.Claims.ToList()[0].Value);
+            return ResultHelper.Success(_Menu.GetMenusByUserId(userId));
+        }
     }
 }

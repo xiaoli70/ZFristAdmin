@@ -52,5 +52,11 @@ namespace Interface
         /// <param name="mids"></param>
         /// <returns></returns>
         bool SettingMenu(long rid, string mids);
+        /// <summary>
+        /// 获取当前登录用户所在角色的菜单列表（树列表）
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        List<MenuRes> GetMenusByUserId(long userId);
     }
 }

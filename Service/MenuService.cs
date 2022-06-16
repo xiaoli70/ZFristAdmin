@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Common;
 using Interface;
 using Model.Dto.Menu;
 using Model.Entitys;
@@ -7,12 +8,13 @@ using SqlSugar;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Service
 {
-    public class MenuService: IMenuService
+    public class MenuService : IMenuService
     {
         private readonly IMapper _mapper;
         private ISqlSugarClient _db { get; set; }
@@ -105,6 +107,71 @@ namespace Service
             _db.Ado.ExecuteCommand($"DELETE MenuRoleRelation WHERE MenuId = {rid}");
             return _db.Insertable(list).ExecuteCommand() > 0;
         }
-
+        #region 查询当前角色所拥有的菜单
+        public List<MenuRes> GetMenusByUserId(long userId)
+        {
+            List<Menu> res = new List<Menu>();
+            //查询当前角色所拥有的菜单
+            Expression<Func<Menu, MenuRoleRelation, bool>> func = (m, mr) => m.Id == mr.MenuId;
+            var currlist = _db.Queryable<Menu>().ToList();
+            if (_db.Queryable<Users>().Where(p => p.Id == userId).First().UserType > 0)
+            {
+                //如果是普通用户，则根据角色获取菜单
+                var idarr = _db.Queryable<UserRoleRelation>().Where(P => P.UserId == userId).Select(s => s.RoleId).ToList();
+                func = (m, mr) => m.Id == mr.MenuId && idarr.Contains(mr.RoleId);
+                currlist = _db.Queryable<Menu>().InnerJoin<MenuRoleRelation>(func).ToList();
+            }
+            var all = _db.Queryable<Menu>().Where(p => p.IsEnable).ToList();
+            if (currlist != null && currlist.Count > 0)
+            {
+                currlist.ForEach(item =>
+                {
+                    //找到这些菜单的父级菜单
+                    GetParent(all, item, res);
+                });
+                //将父级菜单和当前的菜单整合在一起组成完整的菜单
+                List<MenuRes> list = _mapper.Map<List<MenuRes>>(currlist.Concat(res).Distinct().ToList());
+                //再通过递归的方式讲list转tree
+                return GetResult(list);
+            }
+            return new List<MenuRes>();
+        }
+        /// <summary>
+        /// 递归获取所有父级
+        /// </summary>
+        /// <param name="all"></param>
+        /// <param name="curr"></param>
+        /// <param name="res"></param>
+        private static void GetParent(List<Menu> all, Menu curr, List<Menu> res)
+        {
+            var pInfo = all.FirstOrDefault(p => p.Id == curr.ParentId);
+            if (pInfo != null)
+            {
+                res.Add(pInfo);
+                GetParent(all, pInfo, res);
+            }
+        }
+        private static List<MenuRes> GetResult(List<MenuRes> list)
+        {
+            //从一级菜单开始往下找子级菜单
+            List<MenuRes> newlist = list.Where(p => p.ParentId == 0).ToList();
+            //通过递归获取子级
+            GetChildren(list, newlist);
+            return newlist.Distinct(new DisComparer<MenuRes>("Name")).ToList();
+        }
+        private static void GetChildren(List<MenuRes> all, List<MenuRes> res)
+        {
+            if (res != null && res.Count > 0) {
+                res.ForEach(item =>
+                {
+                    var child = all.Where(p => p.ParentId == item.Id).Distinct(new DisComparer<MenuRes>("Name")).OrderBy(p => p.Order).ToList();
+                    if (child != null && child.Count > 0) { 
+                        item.Children=child;
+                        GetChildren(all, child);
+                    }
+                });
+            }
+        }
+        #endregion
     }
 }
