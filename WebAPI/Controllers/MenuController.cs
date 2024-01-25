@@ -19,11 +19,11 @@ namespace WebAPI.Controllers
             _Menu = Menu;
         }
         [HttpPost]
-        public ApiResult Add(MenuAdd req)
+        public async Task<ApiResult> Add(MenuAdd req)
         {
             long userId = Convert.ToInt32(HttpContext.User.Claims.ToList()[0].Value);
             //获取当前登录人信息 
-            return ResultHelper.Success(_Menu.Add(req, userId));
+            return ResultHelper.Success(await _Menu.Add(req, userId));
         }
         [HttpPost]
         public ApiResult Edit(MenuEdit req)

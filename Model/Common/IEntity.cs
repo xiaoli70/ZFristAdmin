@@ -35,7 +35,7 @@ namespace Model.Common
         [SugarColumn(IsNullable = true)]
         public DateTime? ModifyDate { get; set; }
         /// <summary>
-        /// 是否删除
+        /// 是否删除0false 1true
         /// </summary>
         [SugarColumn(IsNullable = false)]
         public int IsDeleted { get; set; }

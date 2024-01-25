@@ -15,6 +15,9 @@ namespace Interface
         bool Del(long id);
         bool BatchDel(string ids);
         PageInfo GetRoles(RoleReq req);
+        
+        Task<PageInfo> GetRolesAsync(RoleReq req);
         RoleRes GetRoleById(long id);
+
     }
 }

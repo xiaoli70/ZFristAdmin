@@ -19,7 +19,7 @@ namespace Interface
         /// <param name="role"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
-        bool Add(MenuAdd role, long userId);
+         Task<bool> Add(MenuAdd role, long userId);
         /// <summary>
         /// 修改
         /// </summary>

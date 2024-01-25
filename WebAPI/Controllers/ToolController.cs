@@ -56,5 +56,11 @@ namespace WebAPI.Controllers
             _db.Insertable(menuRoot).ExecuteReturnBigIdentity();
             return res;
         }
+
+        [HttpGet]
+        public string Test()
+        {
+            return "OK";
+        }
     }
 }

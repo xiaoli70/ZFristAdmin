@@ -4,25 +4,34 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Model.Dto.Role;
 using Model.Other;
+using SqlSugar;
 using WebAPI.Config;
 
 namespace WebAPI.Controllers
 {
+    /// <summary>
+    /// 角色管理
+    /// </summary>
     [Route("api/[controller]/[action]")]
     [Authorize]
     [ApiController]
     public class RoleController : ControllerBase
     {
         private readonly IRoleService _role;
-        public RoleController(IRoleService role)
+        private readonly ISqlSugarClient _sqlSugarClient;
+        public RoleController(IRoleService role,ISqlSugarClient sqlSugarClient)
         {
             _role = role;
+            _sqlSugarClient = sqlSugarClient;
         }
         [HttpPost]
-        public ApiResult GetRoles(RoleReq req)
+        public async Task<ApiResult> GetRoles(RoleReq req)
         {
-            return ResultHelper.Success(_role.GetRoles(req));
+            return ResultHelper.Success(_role.GetRolesAsync(req));
         }
+
+        
+        [OperLog("获取角色",OperEnum.GetData)]
         [HttpGet]
         public ApiResult GetRole(long id)
         {

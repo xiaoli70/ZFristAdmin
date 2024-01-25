@@ -68,5 +68,34 @@ namespace Service
             pageInfo.Total = exp.Count();
             return pageInfo;
         }
+        public async Task<PageInfo> GetRolesAsync(RoleReq req)
+        {
+            PageInfo pageInfo = new PageInfo();
+
+            try
+            {
+                var query = _db.Queryable<Role>().WhereIF(!string.IsNullOrEmpty(req.Name), p => p.Name.Contains(req.Name));
+
+                // 注意：如果 Order 字段可能为 null，请进行 null 检查
+                query = query.OrderBy(p => p.Order);
+
+                var roles = await query
+                    .Skip((req.PageIndex - 1) * req.PageSize)
+                    .Take(req.PageSize)
+                    .ToListAsync();
+
+                pageInfo.Data = _mapper.Map<List<RoleRes>>(roles);
+                pageInfo.Total = query.Count();
+            }
+            catch (Exception ex)
+            {
+                // 处理异常，可以记录日志或者抛出自定义异常
+                Console.WriteLine($"An error occurred in GetRolesAsync: {ex.Message}");
+                // 如果是 Web API，可以抛出 HttpResponseException 或者返回适当的错误状态码
+                throw;
+            }
+
+            return pageInfo;
+        }
     }
 }

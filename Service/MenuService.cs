@@ -23,13 +23,13 @@ namespace Service
             _mapper = mapper;
             _db = db;
         }
-        public bool Add(MenuAdd input, long MenuId)
+        public async Task<bool> Add(MenuAdd input, long MenuId)
         {
             Menu info = _mapper.Map<Menu>(input);
             info.CreateUserId = MenuId;
             info.CreateDate = DateTime.Now;
             info.IsDeleted = 0;
-            return _db.Insertable(info).ExecuteCommand() > 0;
+            return await _db.Insertable(info).ExecuteCommandAsync() > 0;
         }
 
         public bool Edit(MenuEdit input, long userId)
@@ -121,7 +121,7 @@ namespace Service
                 func = (m, mr) => m.Id == mr.MenuId && idarr.Contains(mr.RoleId);
                 currlist = _db.Queryable<Menu>().InnerJoin<MenuRoleRelation>(func).ToList();
             }
-            var all = _db.Queryable<Menu>().Where(p => p.IsEnable).ToList();
+            var all = _db.Queryable<Menu>().Where(p => p.IsEnable==true).ToList();
             if (currlist != null && currlist.Count > 0)
             {
                 currlist.ForEach(item =>

@@ -28,7 +28,7 @@ namespace Service
         /// <exception cref="NotImplementedException"></exception>
         public string GetToken(UserRes user)
         {
-            #region 有效载荷，大家可以自己写，爱写多少写多少；尽量避免敏感信息
+            #region 
             var claims = new[]
             {
                     new Claim("Id",user.Id.ToString()),

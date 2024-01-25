@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Common;
 using Interface;
 using Model.Dto.User;
 using Model.Entitys;
@@ -23,10 +24,27 @@ namespace Service
         }
         public UserRes GetUser(string userName, string password)
         {
-            var user = _db.Queryable<Users>().Where(u => u.Name == userName && u.Password == password).First();
+            var user = _db.Queryable<Users>().Where(u => u.Name == userName &&u.IsDeleted==0).First();
             if (user != null)
             {
+            bool isPasswordCorrect = PasswordHasher.VerifyPassword(password, user.Password.Split(',')[0], user.Password.Split(',')[1]);
+            if (isPasswordCorrect)
+            {
                 return _mapper.Map<UserRes>(user);
+            }}
+            return new UserRes();
+        }
+
+        public async Task<UserRes> GetUserAsync(string userName, string password)
+        {
+            var user =await _db.Queryable<Users>().Where(u => u.Name == userName && u.IsDeleted == 0).FirstAsync();
+            if (user != null)
+            {
+                bool isPasswordCorrect = PasswordHasher.VerifyPassword(password, user.Password.Split(',')[0], user.Password.Split(',')[1]);
+                if (isPasswordCorrect)
+                {
+                    return _mapper.Map<UserRes>(user);
+                }
             }
             return new UserRes();
         }
@@ -37,13 +55,22 @@ namespace Service
             info.CreateDate = DateTime.Now;
             info.UserType = 1;//0=炒鸡管理员，系统内置的
             info.IsDeleted = 0;
+            
+            PasswordHasher.HashPassword(info.Password, out string hashedPassword, out string salt);
+            info.Password= hashedPassword+","+salt;
             return _db.Insertable(info).ExecuteCommand() > 0;
         }
 
         public bool Edit(UserEdit input, long userId)
         {
+
             var info = _db.Queryable<Users>().First(p => p.Id == input.Id);
-            _mapper.Map(input, info);
+            
+             MappingHelper.MapNonNullFields(input, info);
+            if (!string.IsNullOrEmpty(input.Password)) {
+                PasswordHasher.HashPassword(input.Password, out string hashedPassword, out string salt);
+                info.Password = hashedPassword + "," + salt;
+            }
             info.ModifyUserId = userId;
             info.ModifyDate = DateTime.Now;
             return _db.Updateable(info).ExecuteCommand() > 0;
@@ -60,7 +87,7 @@ namespace Service
             return _db.Ado.ExecuteCommand($"DELETE Users WHERE Id IN({ids})") > 0;
         }
 
-        public PageInfo GetUsers(UserReq req)
+        public async Task<PageInfo> GetUsers(UserReq req)
         {
             PageInfo pageInfo = new PageInfo();
             var exp = _db.Queryable<Users>()
@@ -89,16 +116,16 @@ namespace Service
                 ,
                     Description = u.Description
                 });
-            var res = exp
-                .Skip((req.PageIndex - 1) * req.PageSize)
+            var res = await exp
+                    .Skip((req.PageIndex - 1) * req.PageSize)
                 .Take(req.PageSize)
-                .ToList();
-            res.ForEach(p =>
+                .ToListAsync();
+            res.ForEach( p =>
             {
                 p.RoleName = GetRolesByUserId(p.Id);
             });
             pageInfo.Data = _mapper.Map<List<UserRes>>(res);
-            pageInfo.Total = exp.Count();
+            pageInfo.Total = await exp.CountAsync();
             return pageInfo;
         }
         private string GetRolesByUserId(long uid)
@@ -141,5 +168,7 @@ namespace Service
             }
             return _db.Updateable(info).ExecuteCommand() > 0;
         }
+
+        
     }
 }

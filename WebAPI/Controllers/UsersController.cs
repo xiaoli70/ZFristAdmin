@@ -19,10 +19,10 @@ namespace WebAPI.Controllers
             _users = Users;
         }
         [HttpPost]
-        public ApiResult GetUsers(UserReq req)
+        public async Task<ApiResult> GetUsers(UserReq req)
         {
             long userId = Convert.ToInt32(HttpContext.User.Claims.ToList()[0].Value);
-            return ResultHelper.Success(_users.GetUsers(req));
+            return ResultHelper.Success(await _users.GetUsers(req));
         }
         [HttpGet]
         public ApiResult GetUsersById(long id)
@@ -34,6 +34,7 @@ namespace WebAPI.Controllers
         {
             //获取当前登录人信息 
             long userId = Convert.ToInt32(HttpContext.User.Claims.ToList()[0].Value);
+
             return ResultHelper.Success(_users.Add(req, userId));
         }
         [HttpPost]

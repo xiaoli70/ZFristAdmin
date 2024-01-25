@@ -17,6 +17,7 @@ namespace Interface
         /// <param name="password"></param>
         /// <returns></returns>
         UserRes GetUser(string userName, string password);
+        Task<UserRes> GetUserAsync(string userName, string password);
 
         /// <summary>
         /// 添加
@@ -49,7 +50,7 @@ namespace Interface
         /// </summary>
         /// <param name="req"></param>
         /// <returns></returns>
-        PageInfo GetUsers(UserReq req);
+        Task<PageInfo> GetUsers(UserReq req);
         /// <summary>
         /// 根据id获取单个用户
         /// </summary>
